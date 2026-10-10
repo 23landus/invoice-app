@@ -1,2 +1,1 @@
-# invoice-app
-invoice
+Invoice generator
