@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tally — Invoice Generator</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧾</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--brand:#0F6B5C;--bg:#E9EEF1;--ink:#14202B;--mute:#5B6B78;--line:#CBD5DC;--card:#fff;--ok:#0F6B5C;--warn:#B45309;--bad:#B91C1C;--info:#1D4ED8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Figtree,system-ui,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+h1,h2,h3,.biz,.stat b{font-family:'Bricolage Grotesque',Figtree,sans-serif}
+.top{display:flex;align-items:center;gap:12px;padding:14px 24px;background:var(--ink);color:#fff;flex-wrap:wrap}
+.top .logo-t{font:700 22px 'Bricolage Grotesque',sans-serif;margin-right:auto;cursor:pointer}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 20px 60px}
+button,.btn{font:inherit;font-weight:600;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:8px 14px;cursor:pointer}
+button:hover{border-color:var(--ink)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #7DD3C0;outline-offset:1px}
+.pri{background:var(--brand);border-color:var(--brand);color:#fff}.pri:hover{filter:brightness(1.1);border-color:var(--brand)}
+.top button{background:transparent;color:#fff;border-color:#4A5B69}.top .pri{background:var(--brand);border-color:var(--brand)}
+.danger{color:var(--bad)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:20px}
+.stat{background:var(--card);border-radius:10px;padding:14px 16px;border-left:5px solid var(--brand)}
+.stat span{color:var(--mute);font-size:13px}.stat b{display:block;font-size:26px}
+.stat.bad{border-color:var(--bad)}.stat.warn{border-color:var(--warn)}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.bar .tab{border-radius:99px;padding:5px 14px}.bar .tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.bar input{margin-left:auto;max-width:240px}
+input,select,textarea{font:inherit;width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+textarea{min-height:70px;resize:vertical}
+label{display:block;font-size:13px;font-weight:600;color:var(--mute);margin:10px 0 3px}
+.tbl{background:var(--card);border-radius:10px;overflow-x:auto}
+table{border-collapse:collapse;width:100%}
+th,td{padding:10px 14px;text-align:left;border-bottom:1px solid #EDF1F4;white-space:nowrap}
+th{font-size:13px;color:var(--mute);font-weight:600}
+tr.row{cursor:pointer}tr.row:hover{background:#F5F8FA}
+.n{text-align:right}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:12px;font-weight:600;background:#E5E7EB}
+.pill.paid{background:#D1F0E8;color:var(--ok)}.pill.overdue{background:#FDE2E2;color:var(--bad)}.pill.partial{background:#FEF0D0;color:var(--warn)}.pill.unpaid{background:#DCE8FD;color:var(--info)}
+.empty{padding:40px 20px;text-align:center;color:var(--mute)}
+.layout{display:grid;grid-template-columns:minmax(320px,430px) 1fr;gap:20px;align-items:start}
+@media(max-width:900px){.layout{grid-template-columns:1fr}}
+.panel{background:var(--card);border-radius:10px;padding:6px 18px 18px}
+.panel h3{margin:18px 0 4px;font-size:17px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.items .ir{display:grid;grid-template-columns:1fr 54px 80px 28px;gap:6px;margin-bottom:6px}
+.items .ir button{padding:0;color:var(--bad)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.plist div{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.plist button{padding:0 8px;color:var(--bad)}
+#doc{background:#fff;padding:44px;border-radius:4px;box-shadow:0 2px 14px rgba(20,32,43,.15);position:relative;min-height:600px;font-size:14px}
+.dh{display:flex;justify-content:space-between;gap:20px;border-bottom:4px solid var(--brand);padding-bottom:16px}
+.dh h2{margin:0;font-size:34px;color:var(--brand);letter-spacing:-.5px}
+.dh .r{text-align:right}.logo{max-height:60px;max-width:180px;display:block;margin-bottom:8px}
+.biz{font-size:20px}.sm{color:var(--mute);font-size:13px}
+.meta{display:grid;grid-template-columns:2fr 1fr 1fr;gap:16px;margin:22px 0}
+.meta span{display:block;font-size:12px;color:var(--mute)}
+.it th{background:var(--brand);color:#fff;border:0}
+.it td{white-space:normal}.it .n{text-align:right}
+.tt{margin-left:auto;width:min(300px,100%);margin-top:14px}
+.tt div{display:flex;justify-content:space-between;padding:4px 0}
+.tt .big{border-top:2px solid var(--ink);font:700 19px 'Bricolage Grotesque',sans-serif;margin-top:6px;padding-top:8px;color:var(--brand)}
+.stamp{position:absolute;top:130px;right:60px;border:4px solid var(--ok);color:var(--ok);font:700 34px 'Bricolage Grotesque',sans-serif;padding:0 14px;transform:rotate(-10deg);opacity:.35;border-radius:6px}
+.note{margin-top:24px;padding-top:12px;border-top:1px solid var(--line);white-space:pre-wrap}
+.ft{margin-top:24px;text-align:center;color:var(--mute);font-size:13px}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}
+#toast.on{opacity:1}
+@media print{body{background:#fff}.noprint,.formcol{display:none!important}.wrap{padding:0;max-width:none}.layout{display:block}#doc{box-shadow:none;padding:0;min-height:0}@page{margin:14mm}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="top noprint"><span class="logo-t" data-a="list">Tally</span>
+<button data-a="list">Invoices</button><button data-a="set">Settings</button><button class="pri" data-a="new">+ New invoice</button></div>
+<div class="wrap" id="app"></div>
+<div id="toast" role="status"></div>
+<script>
+const $=s=>document.querySelector(s),K='tally.v1',CUR=['USD','EUR','GBP','NGN','UGX','KES','GHS','ZAR','TZS','RWF','INR','CAD','AUD','AED'];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0'),iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const today=()=>iso(new Date()),uid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36);
+const addDays=(d,n)=>{const x=new Date(d+'T00:00:00');x.setDate(x.getDate()+n);return iso(x)};
+function adv(d,f){const x=new Date(d+'T00:00:00'),day=x.getDate();if(f==='weekly')x.setDate(day+7);else{x.setDate(1);x.setMonth(x.getMonth()+{monthly:1,quarterly:3,yearly:12}[f]);x.setDate(Math.min(day,new Date(x.getFullYear(),x.getMonth()+1,0).getDate()))}return iso(x)}
+const fd=d=>d?new Date(d+'T00:00:00').toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'}):'—';
+function money(n){try{return new Intl.NumberFormat(undefined,{style:'currency',currency:S.settings.currency}).format(n||0)}catch(e){return (n||0).toFixed(2)}}
+const clone=o=>JSON.parse(JSON.stringify(o));
+let S=load(),view='list',cur=null,isNew=false,filter='all',q='';
+function load(){try{const d=JSON.parse(localStorage.getItem(K));if(d&&d.settings)return d}catch(e){}
+return{settings:{name:'',email:'',phone:'',address:'',logo:'',color:'#0F6B5C',currency:'USD',prefix:'INV-',next:1,tax:0,terms:14,payInfo:'',footer:'Thank you for your business.'},invoices:[]}}
+function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){toast('Storage is full. Remove the logo or export a backup.')}}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),2600)}
+function calc(c){const sub=c.items.reduce((a,i)=>a+(+i.qty||0)*(+i.price||0),0),disc=Math.min(+c.discount||0,sub),tax=(sub-disc)*(+c.tax||0)/100,total=sub-disc+tax,paid=c.payments.reduce((a,p)=>a+(+p.amount||0),0);return{sub,disc,tax,total,paid,bal:total-paid}}
+function status(c){const t=calc(c);if(t.total>0&&t.bal<=0.005)return'paid';if(c.due&&c.due<today())return'overdue';if(t.paid>0)return'partial';return'unpaid'}
+const blank=()=>({id:uid(),number:S.settings.prefix+pad4(S.settings.next),client:{name:'',email:'',address:''},issue:today(),due:addDays(today(),+S.settings.terms||14),items:[{desc:'',qty:1,price:0}],tax:S.settings.tax||0,discount:0,notes:'',payments:[],rec:{on:false,freq:'monthly',next:''}});
+const pad4=n=>String(n).padStart(4,'0');
+function runRecurring(){let made=0;for(const inv of [...S.invoices]){const r=inv.rec;if(!r||!r.on||!r.next)continue;let g=0;
+while(r.next<=today()&&g++<24){const n=clone(inv);n.id=uid();n.number=S.settings.prefix+pad4(S.settings.next++);n.issue=r.next;n.due=addDays(r.next,+S.settings.terms||14);n.payments=[];n.rec={on:false,freq:r.freq,next:''};S.invoices.push(n);r.next=adv(r.next,r.freq);made++}}
+if(made){save();setTimeout(()=>toast(made+' recurring invoice'+(made>1?'s':'')+' created'),300)}}
+function go(v,c,n){view=v;cur=c||null;isNew=!!n;render();scrollTo(0,0)}
+function render(){document.documentElement.style.setProperty('--brand',S.settings.color||'#0F6B5C');
+$('#app').innerHTML=view==='list'?listHTML():view==='edit'?editHTML():setHTML();if(view==='edit')refresh()}
+function listHTML(){const now=today(),mo=now.slice(0,7);let out=0,over=0,col=0;
+S.invoices.forEach(i=>{const t=calc(i);out+=Math.max(t.bal,0);if(status(i)==='overdue')over+=t.bal;i.payments.forEach(p=>{if((p.date||'').slice(0,7)===mo)col+=+p.amount||0})});
+let rows=S.invoices.filter(i=>filter==='all'||(filter==='recurring'?i.rec&&i.rec.on:status(i)===filter)).filter(i=>(i.number+i.client.name).toLowerCase().includes(q.toLowerCase())).sort((a,b)=>b.issue.localeCompare(a.issue)||b.number.localeCompare(a.number));
+const tabs=['all','unpaid','partial','overdue','paid','recurring'].map(t=>`<button class="tab ${filter===t?'on':''}" data-a="filter" data-v="${t}">${t[0].toUpperCase()+t.slice(1)}</button>`).join('');
+return`<div class="stats"><div class="stat"><span>Outstanding</span><b>${money(out)}</b></div><div class="stat bad"><span>Overdue</span><b>${money(over)}</b></div><div class="stat"><span>Collected this month</span><b>${money(col)}</b></div><div class="stat warn"><span>Invoices</span><b>${S.invoices.length}</b></div></div>
+<div class="bar">${tabs}<input id="q" placeholder="Search number or client" value="${esc(q)}" aria-label="Search"></div>
+<div class="tbl">${rows.length?`<table><thead><tr><th>Number</th><th>Client</th><th>Due</th><th class="n">Total</th><th class="n">Balance</th><th>Status</th></tr></thead><tbody>${rows.map(i=>{const t=calc(i),s=status(i);return`<tr class="row" data-a="open" data-v="${i.id}"><td><b>${esc(i.number)}</b>${i.rec&&i.rec.on?' ↻':''}</td><td>${esc(i.client.name)}</td><td>${fd(i.due)}</td><td class="n">${money(t.total)}</td><td class="n">${money(t.bal)}</td><td><span class="pill ${s}">${s}</span></td></tr>`}).join('')}</tbody></table>`:`<div class="empty">${S.invoices.length?'No invoices match this filter.':'No invoices yet. Add your business details in Settings, then create your first invoice.'}</div>`}</div>`}
+function editHTML(){return`<div class="layout"><div class="formcol panel" id="form">${formHTML()}</div><div id="doc"></div></div>`}
+function formHTML(){const c=cur,names=[...new Set(S.invoices.map(i=>i.client.name).filter(Boolean))];
+return`<h3>${isNew?'New invoice':'Edit invoice'}</h3>
+<label>Invoice number</label><input data-k="number" value="${esc(c.number)}">
+<label>Client name</label><input data-k="client.name" list="cl" value="${esc(c.client.name)}"><datalist id="cl">${names.map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
+<label>Client email</label><input data-k="client.email" type="email" value="${esc(c.client.email)}">
+<label>Client address</label><textarea data-k="client.address">${esc(c.client.address)}</textarea>
+<div class="g2"><div><label>Issue date</label><input type="date" data-k="issue" value="${c.issue}"></div><div><label>Due date</label><input type="date" data-k="due" value="${c.due}"></div></div>
+<h3>Items</h3><div class="items">${c.items.map((it,i)=>`<div class="ir"><input data-k="items.${i}.desc" placeholder="Description" value="${esc(it.desc)}"><input data-k="items.${i}.qty" data-n type="number" min="0" step="any" value="${it.qty}" aria-label="Quantity"><input data-k="items.${i}.price" data-n type="number" min="0" step="any" value="${it.price}" aria-label="Price"><button data-a="rmitem" data-v="${i}" title="Remove item">×</button></div>`).join('')}</div><button data-a="additem">+ Add item</button>
+<div class="g2"><div><label>Tax %</label><input data-k="tax" data-n type="number" min="0" step="any" value="${c.tax}"></div><div><label>Discount (amount)</label><input data-k="discount" data-n type="number" min="0" step="any" value="${c.discount}"></div></div>
+<label>Notes</label><textarea data-k="notes">${esc(c.notes)}</textarea>
+<h3>Payments</h3><div class="plist">${c.payments.map((p,i)=>`<div><span>${fd(p.date)} · ${esc(p.method)}</span><span>${money(p.amount)}<button data-a="rmpay" data-v="${i}" title="Remove payment">×</button></span></div>`).join('')||'<div class="sm">No payments recorded.</div>'}</div>
+<div class="g2" style="margin-top:8px"><input id="pa" type="number" min="0" step="any" placeholder="Amount"><input id="pd" type="date" value="${today()}"></div><div class="g2" style="margin-top:6px"><input id="pm" placeholder="Method (e.g. Bank, Mobile money)"><button data-a="addpay">Record payment</button></div>
+<h3>Recurring</h3><label style="display:flex;gap:8px;align-items:center;color:var(--ink)"><input type="checkbox" style="width:auto" data-k="rec.on" ${c.rec.on?'checked':''}> Repeat this invoice automatically</label>
+<select data-k="rec.freq">${['weekly','monthly','quarterly','yearly'].map(f=>`<option ${c.rec.freq===f?'selected':''}>${f}</option>`).join('')}</select>
+<div class="acts"><button class="pri" data-a="save">Save invoice</button><button data-a="pdf">Download PDF</button><button data-a="email">Email client</button><button data-a="paid">Mark paid in full</button>${isNew?'':'<button data-a="dup">Duplicate</button><button class="danger" data-a="del">Delete</button>'}<button data-a="list">Back</button></div>`}
+function docHTML(c){const s=S.settings,t=calc(c),st=status(c);
+return`${st==='paid'?'<div class="stamp">PAID</div>':''}<div class="dh"><div>${s.logo?`<img class="logo" src="${s.logo}" alt="">`:''}<b class="biz">${esc(s.name||'Your business name')}</b><div class="sm">${esc(s.address).replace(/\n/g,'<br>')}${s.address?'<br>':''}${esc(s.email)} ${esc(s.phone)}</div></div><div class="r"><h2>Invoice</h2><div>${esc(c.number)}</div></div></div>
+<div class="meta"><div><span>Billed to</span><b>${esc(c.client.name)||'Client name'}</b><div class="sm">${esc(c.client.address).replace(/\n/g,'<br>')}<br>${esc(c.client.email)}</div></div><div><span>Issued</span>${fd(c.issue)}</div><div><span>Due</span>${fd(c.due)}</div></div>
+<table class="it"><thead><tr><th>Description</th><th class="n">Qty</th><th class="n">Price</th><th class="n">Amount</th></tr></thead><tbody>${c.items.map(i=>`<tr><td>${esc(i.desc)}</td><td class="n">${+i.qty||0}</td><td class="n">${money(i.price)}</td><td class="n">${money((+i.qty||0)*(+i.price||0))}</td></tr>`).join('')}</tbody></table>
+<div class="tt"><div><span>Subtotal</span><span>${money(t.sub)}</span></div>${t.disc?`<div><span>Discount</span><span>−${money(t.disc)}</span></div>`:''}${+c.tax?`<div><span>Tax (${+c.tax}%)</span><span>${money(t.tax)}</span></div>`:''}<div><span>Total</span><span>${money(t.total)}</span></div>${t.paid?`<div><span>Paid</span><span>−${money(t.paid)}</span></div>`:''}<div class="big"><span>Balance due</span><span>${money(t.bal)}</span></div></div>
+${s.payInfo?`<div class="note"><b>How to pay</b><br>${esc(s.payInfo)}</div>`:''}${c.notes?`<div class="note"><b>Notes</b><br>${esc(c.notes)}</div>`:''}<div class="ft">${esc(s.footer)}</div>`}
+function refresh(){$('#doc').innerHTML=docHTML(cur)}
+function setHTML(){const s=S.settings,f=(l,k,t='text',n)=>`<label>${l}</label><input data-k="${k}" ${n?'data-n':''} type="${t}" value="${esc(s[k])}">`;
+return`<div class="panel" style="max-width:640px;margin:auto"><h3>Your business</h3>${f('Business name','name')}${f('Email','email','email')}${f('Phone','phone')}<label>Address</label><textarea data-k="address">${esc(s.address)}</textarea>
+<label>Logo (shown on invoices)</label><input type="file" id="logo" accept="image/*">${s.logo?`<img class="logo" style="margin-top:8px" src="${s.logo}" alt=""><button data-a="rmlogo">Remove logo</button>`:''}
+<div class="g2"><div><label>Brand colour</label><input type="color" data-k="color" value="${esc(s.color)}" style="height:40px;padding:3px"></div><div><label>Currency</label><select data-k="currency">${CUR.map(c=>`<option ${s.currency===c?'selected':''}>${c}</option>`).join('')}</select></div></div>
+<h3>Invoice defaults</h3><div class="g2">${f('Number prefix','prefix')}${f('Next number','next','number',1)}${f('Default tax %','tax','number',1)}${f('Payment terms (days)','terms','number',1)}</div>
+<label>Payment instructions (bank, mobile money, payment link)</label><textarea data-k="payInfo">${esc(s.payInfo)}</textarea>${f('Footer message','footer')}
+<h3>Your data</h3><p class="sm">Everything is saved in this browser. Export a backup regularly.</p><div class="acts" style="margin-top:0"><button data-a="export">Export backup</button><button data-a="import">Import backup</button><button class="danger" data-a="reset">Erase all data</button></div><input type="file" id="imp" accept=".json" hidden></div>`}
+function setPath(o,p,v){const k=p.split('.');while(k.length>1)o=o[k.shift()];o[k[0]]=v}
+document.addEventListener('input',e=>{const t=e.target;if(t.id==='q'){q=t.value;const p=t.selectionStart;render();const n=$('#q');n.focus();n.setSelectionRange(p,p);return}
+if(!t.dataset.k)return;let v=t.type==='checkbox'?t.checked:t.dataset.n!==undefined?(parseFloat(t.value)||0):t.value;
+if(view==='set'){setPath(S.settings,t.dataset.k,v);save();if(t.dataset.k==='color')document.documentElement.style.setProperty('--brand',v)}else{setPath(cur,t.dataset.k,v);refresh()}});
+document.addEventListener('change',e=>{const t=e.target;
+if(t.id==='logo'&&t.files[0]){const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const sc=Math.min(1,320/im.width),c=document.createElement('canvas');c.width=im.width*sc;c.height=im.height*sc;c.getContext('2d').drawImage(im,0,0,c.width,c.height);S.settings.logo=c.toDataURL('image/png');save();render()};im.src=r.result};r.readAsDataURL(t.files[0])}
+if(t.id==='imp'&&t.files[0]){const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.settings||!Array.isArray(d.invoices))throw 0;S=d;save();toast('Backup restored');go('list')}catch(x){toast('That file is not a Tally backup')}};r.readAsText(t.files[0])}});
+function formRe(){$('#form').innerHTML=formHTML();refresh()}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t)return;const a=t.dataset.a,v=t.dataset.v;
+switch(a){
+case'list':return go('list');case'set':return go('set');case'new':return go('edit',blank(),true);
+case'filter':filter=v;return render();
+case'open':return go('edit',clone(S.invoices.find(i=>i.id===v)));
+case'additem':cur.items.push({desc:'',qty:1,price:0});return formRe();
+case'rmitem':cur.items.splice(+v,1);if(!cur.items.length)cur.items.push({desc:'',qty:1,price:0});return formRe();
+case'addpay':{const amt=parseFloat($('#pa').value);if(!(amt>0))return toast('Enter a payment amount');cur.payments.push({date:$('#pd').value||today(),amount:amt,method:$('#pm').value||'Payment'});return formRe()}
+case'rmpay':cur.payments.splice(+v,1);return formRe();
+case'paid':{const b=calc(cur).bal;if(b<=0)return toast('Nothing left to pay');cur.payments.push({date:today(),amount:b,method:'Paid in full'});return formRe()}
+case'save':{if(!cur.client.name.trim())return toast('Add a client name first');
+if(cur.rec.on&&!cur.rec.next)cur.rec.next=adv(cur.issue,cur.rec.freq);if(!cur.rec.on)cur.rec.next='';
+const i=S.invoices.findIndex(x=>x.id===cur.id);if(i>=0)S.invoices[i]=cur;else{S.invoices.push(cur);S.settings.next=Math.max(S.settings.next,(parseInt(cur.number.replace(/\D/g,''))||0)+1)}
+save();toast('Invoice saved');return go('list')}
+case'dup':{const n=clone(cur);n.id=uid();n.number=S.settings.prefix+pad4(S.settings.next);n.payments=[];n.issue=today();n.due=addDays(today(),+S.settings.terms||14);n.rec={on:false,freq:'monthly',next:''};return go('edit',n,true)}
+case'del':if(confirm('Delete invoice '+cur.number+'? This cannot be undone.')){S.invoices=S.invoices.filter(x=>x.id!==cur.id);save();toast('Invoice deleted');go('list')}return;
+case'pdf':{const o=document.title;document.title=(S.settings.name||'Invoice')+' - '+cur.number;refresh();window.print();document.title=o;return}
+case'email':{const t=calc(cur),b=`Hello ${cur.client.name},\n\nPlease find invoice ${cur.number} for ${money(t.total)}, due ${fd(cur.due)}. Balance: ${money(t.bal)}.\n\n${S.settings.payInfo||''}\n\n${S.settings.footer}\n${S.settings.name}`;
+location.href=`mailto:${encodeURIComponent(cur.client.email)}?subject=${encodeURIComponent('Invoice '+cur.number+' from '+(S.settings.name||''))}&body=${encodeURIComponent(b)}`;return toast('Attach the PDF from "Download PDF" before sending')}
+case'rmlogo':S.settings.logo='';save();return render();
+case'export':{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}));a.download='tally-backup-'+today()+'.json';a.click();return}
+case'import':return $('#imp').click();
+case'reset':if(confirm('Erase all invoices and settings from this browser?')){localStorage.removeItem(K);S=load();toast('All data erased');go('list')}return}});
+runRecurring();render();
+</script>
+</body>
+</html>
